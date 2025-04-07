@@ -13,6 +13,9 @@ export interface Employee {
   taxCard: string;
   hireDate: string;
   status: 'Active' | 'Inactive';
+  residencyStatus: 'Resident' | 'Non-Resident';
+  unionMember: boolean;
+  unionName?: string;
 }
 
 // Tax Field Types
@@ -26,6 +29,9 @@ export interface TaxField {
   category: TaxCategory;
   isActive: boolean;
   lastUpdated: string;
+  applicableToResidents: boolean;
+  applicableToNonResidents: boolean;
+  applicableToVesselTypes: ('NOR' | 'NIS' | 'Other')[];
 }
 
 export type TaxCategory = 
@@ -35,6 +41,9 @@ export type TaxCategory =
   | 'Maritime Allowance'
   | 'Special Deduction'
   | 'Pension'
+  | 'Union Fee'
+  | 'Insurance'
+  | 'Residence Tax'
   | 'Other';
 
 export interface ProgressiveTaxBracket {
@@ -42,6 +51,8 @@ export interface ProgressiveTaxBracket {
   threshold: number;
   rate: number;
   description: string;
+  applicableToResidents: boolean;
+  applicableToNonResidents: boolean;
 }
 
 // Payroll Types
@@ -55,8 +66,11 @@ export interface PayrollCalculation {
   seafarerAllowance: number;
   specialDeductions: number;
   pensionContribution: number;
+  unionFees: number;
+  otherDeductions: number;
   netSalary: number;
   calculationDate: string;
+  employeeName?: string;
 }
 
 // Dashboard Types
@@ -66,4 +80,19 @@ export interface DashboardSummary {
   pendingPayrolls: number;
   completedPayrolls: number;
   lastUpdated: string;
+  residentEmployees: number;
+  nonResidentEmployees: number;
+  norVesselEmployees: number;
+  nisVesselEmployees: number;
+  otherVesselEmployees: number;
+}
+
+export interface PayrollBatchSummary {
+  id: string;
+  date: string;
+  employeeCount: number;
+  totalGrossSalary: number;
+  totalNetSalary: number;
+  totalTaxes: number;
+  status: 'Completed' | 'Processing' | 'Error';
 }

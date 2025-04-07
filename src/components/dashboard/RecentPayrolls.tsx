@@ -15,13 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Employee, PayrollCalculation } from '@/types/types';
 import { mockEmployees, mockPayrollCalculations } from '@/data/mockData';
-import { Button } from '@/components/ui/button';
-import { FileDown } from 'lucide-react';
+import { Download, Eye, FileDown } from 'lucide-react';
 
 const RecentPayrolls: React.FC = () => {
-  const [payrolls, setPayrolls] = useState<(PayrollCalculation & { employeeName: string })[]>([]);
+  const [payrolls, setPayrolls] = useState<(PayrollCalculation & { employeeName: string; vesselType: string })[]>([]);
 
   useEffect(() => {
     // In a real app, this would be an API call
@@ -29,12 +30,24 @@ const RecentPayrolls: React.FC = () => {
       const employee = mockEmployees.find(emp => emp.id === payroll.employeeId);
       return {
         ...payroll,
-        employeeName: employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown Employee'
+        employeeName: employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown Employee',
+        vesselType: employee?.vesselType || 'Unknown'
       };
     });
     
     setPayrolls(enrichedPayrolls);
   }, []);
+
+  const getVesselTypeBadge = (vesselType: string) => {
+    switch (vesselType) {
+      case 'NOR':
+        return <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">NOR</Badge>;
+      case 'NIS':
+        return <Badge variant="outline" className="border-purple-200 bg-purple-50 text-purple-700">NIS</Badge>;
+      default:
+        return <Badge variant="outline">Other</Badge>;
+    }
+  };
 
   return (
     <Card className="h-full">
@@ -56,20 +69,26 @@ const RecentPayrolls: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
+                <TableHead>Vessel</TableHead>
                 <TableHead>Gross Salary</TableHead>
-                <TableHead>Tax</TableHead>
                 <TableHead>Net Salary</TableHead>
-                <TableHead className="text-right">Date</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {payrolls.map((payroll) => (
                 <TableRow key={payroll.employeeId}>
                   <TableCell className="font-medium">{payroll.employeeName}</TableCell>
+                  <TableCell>{getVesselTypeBadge(payroll.vesselType)}</TableCell>
                   <TableCell>{payroll.grossSalary.toLocaleString()} NOK</TableCell>
-                  <TableCell>{(payroll.basicIncomeTax + payroll.progressiveTax).toLocaleString()} NOK</TableCell>
                   <TableCell>{payroll.netSalary.toLocaleString()} NOK</TableCell>
-                  <TableCell className="text-right">{payroll.calculationDate}</TableCell>
+                  <TableCell>{payroll.calculationDate}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
