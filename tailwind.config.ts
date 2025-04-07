@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Maritime specific colors
+				maritime: {
+					50: '#f0f7ff',
+					100: '#e3f1ff',
+					200: '#c7e3ff',
+					300: '#9bcfff',
+					400: '#6ab3ff',
+					500: '#4291ff',
+					600: '#2b6efd',
+					700: '#1f4feb',
+					800: '#1e40af',
+					900: '#1e3a8a',
+					950: '#0f1f4d',
+				},
+				norwegian: {
+					red: '#ef2b2d',
+					blue: '#002868',
 				}
 			},
 			borderRadius: {
@@ -84,11 +103,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out'
 			}
 		}
 	},
