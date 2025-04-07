@@ -15,48 +15,50 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
-          } />
-          <Route path="/employees" element={
-            <AppLayout>
-              <Employees />
-            </AppLayout>
-          } />
-          <Route path="/tax-settings" element={
-            <AppLayout>
-              <TaxSettings />
-            </AppLayout>
-          } />
-          <Route path="/payroll" element={
-            <AppLayout>
-              <Payroll />
-            </AppLayout>
-          } />
-          <Route path="/reports" element={
-            <AppLayout>
-              <Reports />
-            </AppLayout>
-          } />
-          <Route path="/settings" element={
-            <AppLayout>
-              <Settings />
-            </AppLayout>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            } />
+            <Route path="/employees" element={
+              <AppLayout>
+                <Employees />
+              </AppLayout>
+            } />
+            <Route path="/tax-settings" element={
+              <AppLayout>
+                <TaxSettings />
+              </AppLayout>
+            } />
+            <Route path="/payroll" element={
+              <AppLayout>
+                <Payroll />
+              </AppLayout>
+            } />
+            <Route path="/reports" element={
+              <AppLayout>
+                <Reports />
+              </AppLayout>
+            } />
+            <Route path="/settings" element={
+              <AppLayout>
+                <Settings />
+              </AppLayout>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;
