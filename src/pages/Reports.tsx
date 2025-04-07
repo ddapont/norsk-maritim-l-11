@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BarChart, Download, FileText, FileText2, PieChart } from 'lucide-react';
+import { BarChart, Download, FileText, PieChart } from 'lucide-react';
 
 const Reports: React.FC = () => {
   const reportTypes = [
@@ -25,7 +25,7 @@ const Reports: React.FC = () => {
     {
       title: "Employee Tax Reports",
       description: "Individual tax reports for all employees",
-      icon: FileText2,
+      icon: FileText,
     },
     {
       title: "Contributions Overview",
@@ -39,8 +39,8 @@ const Reports: React.FC = () => {
       <h1 className="font-bold">Reports</h1>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {reportTypes.map((report) => (
-          <Card key={report.title} className="h-full">
+        {reportTypes.map((report, index) => (
+          <Card key={`${report.title}-${index}`} className="h-full">
             <CardHeader>
               <report.icon className="h-6 w-6 mb-2 text-primary" />
               <CardTitle className="text-lg">{report.title}</CardTitle>

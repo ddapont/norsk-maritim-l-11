@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -7,309 +8,506 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { FileDown, HelpCircle, Save, UserCog } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { CloudUpload, RefreshCw, Save } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+
+// Define the form schema for company settings
+const companyFormSchema = z.object({
+  companyName: z.string().min(2, {
+    message: "Company name must be at least 2 characters.",
+  }),
+  orgNumber: z.string().min(9, {
+    message: "Organization number must be 9 digits.",
+  }),
+  address: z.string().min(5, {
+    message: "Address must be at least 5 characters.",
+  }),
+  postalCode: z.string().min(4, {
+    message: "Postal code must be at least 4 characters."
+  }),
+  city: z.string().min(2, {
+    message: "City must be at least 2 characters."
+  }),
+  country: z.string().min(2, {
+    message: "Country must be at least 2 characters."
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  phone: z.string().min(8, {
+    message: "Phone number must be at least 8 digits.",
+  }),
+});
+
+// Define the form schema for notification settings
+const notificationFormSchema = z.object({
+  emailNotifications: z.boolean().default(true),
+  payrollReminders: z.boolean().default(true),
+  taxDeadlines: z.boolean().default(true),
+  systemUpdates: z.boolean().default(false),
+  emailRecipients: z.string().optional(),
+});
 
 const Settings: React.FC = () => {
+  // Initialize form for company settings
+  const companyForm = useForm<z.infer<typeof companyFormSchema>>({
+    resolver: zodResolver(companyFormSchema),
+    defaultValues: {
+      companyName: "Ocean Shipping AS",
+      orgNumber: "123456789",
+      address: "Sjøveien 42",
+      postalCode: "5020",
+      city: "Bergen",
+      country: "Norway",
+      email: "admin@oceanshipping.no",
+      phone: "47123456",
+    },
+  });
+
+  // Initialize form for notification settings
+  const notificationForm = useForm<z.infer<typeof notificationFormSchema>>({
+    resolver: zodResolver(notificationFormSchema),
+    defaultValues: {
+      emailNotifications: true,
+      payrollReminders: true,
+      taxDeadlines: true,
+      systemUpdates: false,
+      emailRecipients: "admin@oceanshipping.no, finance@oceanshipping.no",
+    },
+  });
+
+  // Form submission handlers
+  const onCompanySubmit = (values: z.infer<typeof companyFormSchema>) => {
+    console.log(values);
+    // In a real application, this would save to the backend
+  };
+
+  const onNotificationSubmit = (values: z.infer<typeof notificationFormSchema>) => {
+    console.log(values);
+    // In a real application, this would save to the backend
+  };
+
   return (
     <div className="space-y-6 fade-in">
-      <h1 className="font-bold">Settings</h1>
-
-      <Tabs defaultValue="general">
-        <TabsList className="grid w-full md:w-auto grid-cols-3">
+      <h1 className="font-bold text-xl">Settings</h1>
+      
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="mb-4 bg-card">
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="integration">Integrations</TabsTrigger>
-          <TabsTrigger value="import-export">Import/Export</TabsTrigger>
+          <TabsTrigger value="company">Company</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="system">System</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="general" className="mt-4">
+        {/* General Settings Tab */}
+        <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
+              <CardTitle>User Preferences</CardTitle>
               <CardDescription>
-                Configure general application settings
+                Configure your personal preferences for the payroll system.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">System Preferences</h3>
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="auto-update" className="font-medium">Auto-update tax fields</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically update tax fields when regulatory changes occur
-                      </p>
-                    </div>
-                    <Switch id="auto-update" defaultChecked />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="audit-logging" className="font-medium">Enhanced audit logging</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Keep detailed logs of all tax field changes and calculations
-                      </p>
-                    </div>
-                    <Switch id="audit-logging" defaultChecked />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="tax-preview" className="font-medium">Real-time tax preview</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Show live tax calculation preview when making changes
-                      </p>
-                    </div>
-                    <Switch id="tax-preview" defaultChecked />
-                  </div>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium">Language</h3>
+                  <p className="text-sm text-muted-foreground">Choose your preferred language</p>
+                </div>
+                <div>
+                  <select className="w-32 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                    <option value="en">English</option>
+                    <option value="no" selected>Norsk</option>
+                    <option value="sv">Svenska</option>
+                  </select>
                 </div>
               </div>
               
               <Separator />
               
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Notifications</h3>
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="tax-updates" className="font-medium">Tax regulation updates</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications about tax regulation changes
-                      </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium">Date Format</h3>
+                  <p className="text-sm text-muted-foreground">Choose how dates are displayed</p>
+                </div>
+                <div>
+                  <select className="w-32 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                    <option value="dd-mm-yyyy">DD/MM/YYYY</option>
+                    <option value="mm-dd-yyyy">MM/DD/YYYY</option>
+                    <option value="yyyy-mm-dd" selected>YYYY-MM-DD</option>
+                  </select>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium">Automatic Sign Out</h3>
+                  <p className="text-sm text-muted-foreground">Sign out after inactivity</p>
+                </div>
+                <div>
+                  <select className="w-32 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                    <option value="15">15 minutes</option>
+                    <option value="30" selected>30 minutes</option>
+                    <option value="60">60 minutes</option>
+                    <option value="never">Never</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Company Settings Tab */}
+        <TabsContent value="company" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Company Information</CardTitle>
+              <CardDescription>
+                Manage your company details used in payroll processing and reports.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...companyForm}>
+                <form onSubmit={companyForm.handleSubmit(onCompanySubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={companyForm.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={companyForm.control}
+                      name="orgNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Organization Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={companyForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={companyForm.control}
+                        name="postalCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Postal Code</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={companyForm.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>City</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                    <Switch id="tax-updates" defaultChecked />
+                    
+                    <FormField
+                      control={companyForm.control}
+                      name="country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={companyForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="email" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={companyForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="payroll-reminders" className="font-medium">Payroll processing reminders</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Get reminders for upcoming payroll processing deadlines
-                      </p>
-                    </div>
-                    <Switch id="payroll-reminders" defaultChecked />
+                  <div className="flex justify-end mt-4">
+                    <Button type="submit">
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Company Information
+                    </Button>
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Settings
-                </Button>
-              </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="integration" className="mt-4">
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Integration Settings</CardTitle>
+              <CardTitle>Notification Preferences</CardTitle>
               <CardDescription>
-                Configure integrations with external systems
+                Configure which notifications you receive and how they are delivered.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-6">
-                <div className="rounded-lg border p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-medium">HR System Integration</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Connect to your existing HR system to import employee data
-                      </p>
-                    </div>
-                    <Switch id="hr-integration" />
+            <CardContent>
+              <Form {...notificationForm}>
+                <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
+                  <FormField
+                    control={notificationForm.control}
+                    name="emailNotifications"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div>
+                          <FormLabel>Email Notifications</FormLabel>
+                          <FormDescription>Receive notifications via email</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator />
+                  
+                  <FormField
+                    control={notificationForm.control}
+                    name="payrollReminders"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div>
+                          <FormLabel>Payroll Reminders</FormLabel>
+                          <FormDescription>Notifications about upcoming payroll processing</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator />
+                  
+                  <FormField
+                    control={notificationForm.control}
+                    name="taxDeadlines"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div>
+                          <FormLabel>Tax Deadlines</FormLabel>
+                          <FormDescription>Notifications about upcoming tax deadlines</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator />
+                  
+                  <FormField
+                    control={notificationForm.control}
+                    name="systemUpdates"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between">
+                        <div>
+                          <FormLabel>System Updates</FormLabel>
+                          <FormDescription>Receive notifications about system updates</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator />
+                  
+                  <FormField
+                    control={notificationForm.control}
+                    name="emailRecipients"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Recipients</FormLabel>
+                        <FormDescription>Comma-separated list of email addresses</FormDescription>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="email1@company.com, email2@company.com"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-end mt-4">
+                    <Button type="submit">
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Notification Settings
+                    </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="hr-api-key">API Key</Label>
-                      <input 
-                        id="hr-api-key" 
-                        type="password" 
-                        placeholder="Enter API key" 
-                        className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="hr-api-url">API URL</Label>
-                      <input 
-                        id="hr-api-url" 
-                        type="text" 
-                        placeholder="https://api.hrsystem.com" 
-                        className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <Button variant="outline" size="sm">Test Connection</Button>
-                  </div>
-                </div>
-                
-                <div className="rounded-lg border p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-medium">Tax Authority Integration</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Connect to Norwegian tax authority system for automated reporting
-                      </p>
-                    </div>
-                    <Switch id="tax-integration" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tax-certificate">Digital Certificate</Label>
-                      <div className="flex gap-2">
-                        <input 
-                          id="tax-certificate" 
-                          type="text" 
-                          placeholder="No certificate uploaded" 
-                          className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background"
-                          readOnly
-                        />
-                        <Button variant="outline" size="sm">
-                          <CloudUpload className="h-4 w-4 mr-2" />
-                          Upload
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tax-org-number">Organization Number</Label>
-                      <input 
-                        id="tax-org-number" 
-                        type="text" 
-                        placeholder="Enter organization number" 
-                        className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <Button variant="outline" size="sm">Verify Credentials</Button>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button variant="outline" className="mr-2">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Reset
-                </Button>
-                <Button>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Integrations
-                </Button>
-              </div>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="import-export" className="mt-4">
+        {/* System Tab */}
+        <TabsContent value="system" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Import/Export</CardTitle>
+              <CardTitle>System Information</CardTitle>
               <CardDescription>
-                Import and export data to and from the system
+                View system details and manage data exports.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="rounded-lg border p-4">
-                  <h3 className="font-medium mb-4">Import Data</h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Data Type</Label>
-                      <select className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background">
-                        <option>Employee Data</option>
-                        <option>Tax Settings</option>
-                        <option>Pay Rates</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>File Format</Label>
-                      <select className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background">
-                        <option>CSV</option>
-                        <option>XML</option>
-                        <option>JSON</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>File Upload</Label>
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="No file selected" 
-                          className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background"
-                          readOnly
-                        />
-                        <Button variant="outline" size="sm">Browse</Button>
-                      </div>
-                    </div>
-                    <Button className="w-full">Import Data</Button>
-                  </div>
-                </div>
-                
-                <div className="rounded-lg border p-4">
-                  <h3 className="font-medium mb-4">Export Data</h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Data Type</Label>
-                      <select className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background">
-                        <option>All Employee Data</option>
-                        <option>Tax Settings</option>
-                        <option>Payroll Reports</option>
-                        <option>Tax Calculations</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>File Format</Label>
-                      <select className="w-full rounded-md border border-input px-3 py-2 text-sm bg-background">
-                        <option>CSV</option>
-                        <option>XML</option>
-                        <option>JSON</option>
-                        <option>PDF</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Date Range</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <input 
-                          type="date" 
-                          className="rounded-md border border-input px-3 py-2 text-sm bg-background"
-                        />
-                        <input 
-                          type="date" 
-                          className="rounded-md border border-input px-3 py-2 text-sm bg-background"
-                        />
-                      </div>
-                    </div>
-                    <Button className="w-full">Export Data</Button>
-                  </div>
+              <div className="space-y-1">
+                <div className="text-sm font-medium">Version Information</div>
+                <div className="text-sm text-muted-foreground">NorskPayroll v1.0.0 (Build 2025.04.07)</div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-1">
+                <div className="text-sm font-medium">License</div>
+                <div className="text-sm text-muted-foreground">Enterprise Edition - Licensed to Ocean Shipping AS</div>
+                <div className="text-sm text-muted-foreground">Expires: December 31, 2025</div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Data Management</div>
+                <div className="flex flex-col space-y-2">
+                  <Button variant="outline" className="justify-start">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export Employee Data
+                  </Button>
+                  
+                  <Button variant="outline" className="justify-start">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export Tax Settings
+                  </Button>
+                  
+                  <Button variant="outline" className="justify-start">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export Payroll History
+                  </Button>
                 </div>
               </div>
               
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <h3 className="font-medium mb-2">Data Templates</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Download templates for importing data into the system
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Employee Template
+              <Separator />
+              
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Support</div>
+                <div className="flex flex-col space-y-2">
+                  <Button variant="outline" className="justify-start">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Documentation
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Tax Settings Template
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Allowances Template
+                  
+                  <Button variant="outline" className="justify-start">
+                    <UserCog className="mr-2 h-4 w-4" />
+                    Contact Support
                   </Button>
                 </div>
               </div>

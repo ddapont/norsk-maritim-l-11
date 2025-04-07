@@ -84,7 +84,7 @@ const AppSidebar: React.FC = () => {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild active={currentPath === item.url}>
+                  <SidebarMenuButton asChild isActive={currentPath === item.url}>
                     <Link to={item.url} className="flex items-center">
                       <item.icon className="mr-2 h-5 w-5" />
                       <span>{item.title}</span>
