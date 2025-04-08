@@ -1,4 +1,3 @@
-
 import { DashboardSummary, Employee, PayrollBatchSummary, PayrollCalculation, ProgressiveTaxBracket, TaxField } from "../types/types";
 
 // Mock Employees
@@ -19,6 +18,10 @@ export const mockEmployees: Employee[] = [
     residencyStatus: "Resident",
     unionMember: true,
     unionName: "Norwegian Maritime Officers' Association",
+    tags: ["Captain", "Officer"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "2",
@@ -36,6 +39,10 @@ export const mockEmployees: Employee[] = [
     residencyStatus: "Resident",
     unionMember: true,
     unionName: "Norwegian Union of Marine Engineers",
+    tags: ["Engineer", "Chief"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "3",
@@ -52,6 +59,10 @@ export const mockEmployees: Employee[] = [
     status: "Active",
     residencyStatus: "Resident",
     unionMember: false,
+    tags: ["Officer"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "4",
@@ -68,6 +79,10 @@ export const mockEmployees: Employee[] = [
     status: "Active",
     residencyStatus: "Non-Resident",
     unionMember: false,
+    tags: ["Engineer"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "5",
@@ -85,6 +100,10 @@ export const mockEmployees: Employee[] = [
     residencyStatus: "Resident",
     unionMember: true,
     unionName: "Norwegian Seafarers' Union",
+    tags: ["Officer", "Deck"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "6",
@@ -102,6 +121,10 @@ export const mockEmployees: Employee[] = [
     residencyStatus: "Resident",
     unionMember: true,
     unionName: "Norwegian Maritime Officers' Association",
+    tags: ["Officer", "Chief"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
   {
     id: "7",
@@ -118,6 +141,10 @@ export const mockEmployees: Employee[] = [
     status: "Active",
     residencyStatus: "Non-Resident",
     unionMember: false,
+    tags: ["Engineer"],
+    taxRulePreferences: {
+      useDefaultRules: true
+    }
   },
 ];
 

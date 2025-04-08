@@ -31,13 +31,15 @@ interface TaxFieldEditDialogProps {
   onClose: () => void;
   taxField: TaxField | null;
   onSave: (taxField: TaxField) => void;
+  categories?: TaxCategory[]; // Added this prop
 }
 
 const TaxFieldEditDialog: React.FC<TaxFieldEditDialogProps> = ({
   isOpen,
   onClose,
   taxField,
-  onSave
+  onSave,
+  categories
 }) => {
   const form = useForm<TaxField>({
     defaultValues: taxField || {
@@ -71,7 +73,8 @@ const TaxFieldEditDialog: React.FC<TaxFieldEditDialogProps> = ({
     onSave(updatedTaxField);
   };
 
-  const taxCategories: TaxCategory[] = [
+  // Default tax categories if not provided
+  const taxCategories: TaxCategory[] = categories || [
     'Basic Income Tax',
     'Progressive Tax',
     'Social Security',
