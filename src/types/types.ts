@@ -1,11 +1,10 @@
-
 // Employee Types
 export interface Employee {
   id: string;
+  employeeNumber: string; // This becomes our visible ID
   firstName: string;
   lastName: string;
   email: string;
-  employeeNumber: string;
   position: string;
   department: string;
   vesselType: 'NOR' | 'NIS' | 'Other';
@@ -16,6 +15,11 @@ export interface Employee {
   residencyStatus: 'Resident' | 'Non-Resident';
   unionMember: boolean;
   unionName?: string;
+  tags: string[]; // New field for additional tags
+  taxRulePreferences: {
+    useDefaultRules: boolean;
+    customRules?: string[]; // IDs of tax fields that apply specifically to this employee
+  };
 }
 
 // Tax Field Types
