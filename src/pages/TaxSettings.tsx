@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,22 +37,17 @@ const TaxSettings: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // In a real app, these would be API calls
     setTaxFields(mockTaxFields);
     setProgressiveBrackets(mockProgressiveTaxBrackets);
   }, []);
 
-  // Apply filters and search
   const filteredTaxFields = taxFields.filter(field => {
-    // Search term filter
     const searchMatch = searchTerm === '' || 
       field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       field.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-    // Category filter
     let categoryMatch = filterCategory === 'All' || field.category === filterCategory;
     
-    // Residency filter
     let residencyMatch = true;
     if (filterResidency === 'Resident') {
       residencyMatch = field.applicableToResidents;
@@ -61,7 +55,6 @@ const TaxSettings: React.FC = () => {
       residencyMatch = field.applicableToNonResidents;
     }
     
-    // Vessel type filter
     let vesselMatch = true;
     if (filterVesselType !== 'All') {
       vesselMatch = field.applicableToVesselTypes.includes(filterVesselType as 'NOR' | 'NIS' | 'Other');
@@ -72,7 +65,6 @@ const TaxSettings: React.FC = () => {
 
   const uniqueCategories = Array.from(new Set(taxFields.map(field => field.category)));
 
-  // Filter brackets
   const filteredBrackets = progressiveBrackets.filter(bracket => {
     if (filterResidency === 'Resident') {
       return bracket.applicableToResidents;
@@ -82,7 +74,6 @@ const TaxSettings: React.FC = () => {
     return true;
   }).sort((a, b) => a.threshold - b.threshold);
 
-  // Handle tax field toggle
   const handleToggleTaxField = (id: string, isActive: boolean) => {
     const updatedFields = taxFields.map(field => 
       field.id === id ? { ...field, isActive, lastUpdated: new Date().toISOString().split('T')[0] } : field
@@ -97,13 +88,11 @@ const TaxSettings: React.FC = () => {
     });
   };
 
-  // Edit tax field
   const handleEditTaxField = (field: TaxField) => {
     setSelectedTaxField(field);
     setIsEditingTaxField(true);
   };
 
-  // Save tax field changes
   const handleSaveTaxField = (updatedField: TaxField) => {
     const updatedFields = taxFields.map(field => 
       field.id === updatedField.id ? updatedField : field
@@ -117,7 +106,6 @@ const TaxSettings: React.FC = () => {
     });
   };
 
-  // Add new tax field
   const handleAddTaxField = () => {
     const newField: TaxField = {
       id: `tf-${Date.now()}`,
@@ -138,7 +126,6 @@ const TaxSettings: React.FC = () => {
     setIsEditingTaxField(true);
   };
 
-  // Handle tax bracket related functions
   const handleEditTaxBracket = (bracket: ProgressiveTaxBracket) => {
     setSelectedTaxBracket(bracket);
     setIsEditingTaxBracket(true);
@@ -171,9 +158,15 @@ const TaxSettings: React.FC = () => {
     setIsEditingTaxBracket(true);
   };
 
-  // Save all changes
+  const handleContextMenuAction = (field: TaxField, action: string) => {
+    if (action === 'edit') {
+      handleEditTaxField(field);
+    } else if (action === 'toggle') {
+      handleToggleTaxField(field.id, !field.isActive);
+    }
+  };
+
   const handleSaveAllChanges = () => {
-    // In a real app, this would call an API to save all changes to the backend
     setHasUnsavedChanges(false);
     
     toast({
@@ -183,7 +176,6 @@ const TaxSettings: React.FC = () => {
     });
   };
 
-  // Open tax calculator
   const handleOpenTaxCalculator = () => {
     navigate('/payroll');
     toast({
@@ -356,98 +348,119 @@ const TaxSettings: React.FC = () => {
                       </TableRow>
                     ) : (
                       filteredTaxFields.map(field => (
-                        <ContextMenuTrigger key={field.id} asChild>
-                          <TableRow className="cursor-pointer hover:bg-muted/50">
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-1">
-                                {field.name}
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help ml-1" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="max-w-xs">{field.description}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{field.category}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              {field.valueType === 'percentage' ? `${field.currentValue}%` : `${field.currentValue.toLocaleString()} NOK`}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                {field.applicableToResidents && <TooltipProvider>
+                        <ContextMenu key={field.id}>
+                          <ContextMenuTrigger asChild>
+                            <TableRow className="cursor-pointer hover:bg-muted/50">
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-1">
+                                  {field.name}
+                                  <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
-                                          <Flag className="h-3 w-3 mr-1" />R
-                                        </Badge>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help ml-1" />
                                       </TooltipTrigger>
                                       <TooltipContent>
-                                        <p>Applies to Residents</p>
+                                        <p className="max-w-xs">{field.description}</p>
                                       </TooltipContent>
                                     </Tooltip>
-                                  </TooltipProvider>}
-                                {field.applicableToNonResidents && <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                                          <Flag className="h-3 w-3 mr-1" />NR
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Applies to Non-Residents</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>}
-                                {field.applicableToVesselTypes.includes('NOR') && <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-                                          <Ship className="h-3 w-3 mr-1" />NOR
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Applies to NOR Vessels</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>}
-                                {field.applicableToVesselTypes.includes('NIS') && <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="border-purple-200 bg-purple-50 text-purple-700">
-                                          <Anchor className="h-3 w-3 mr-1" />NIS
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Applies to NIS Vessels</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Switch 
-                                checked={field.isActive} 
-                                onCheckedChange={(checked) => handleToggleTaxField(field.id, checked)}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => handleEditTaxField(field)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </ContextMenuTrigger>
+                                  </TooltipProvider>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{field.category}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                {field.valueType === 'percentage' ? `${field.currentValue}%` : `${field.currentValue.toLocaleString()} NOK`}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  {field.applicableToResidents && <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
+                                            <Flag className="h-3 w-3 mr-1" />R
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Applies to Residents</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>}
+                                  {field.applicableToNonResidents && <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                                            <Flag className="h-3 w-3 mr-1" />NR
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Applies to Non-Residents</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>}
+                                  {field.applicableToVesselTypes.includes('NOR') && <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                                            <Ship className="h-3 w-3 mr-1" />NOR
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Applies to NOR Vessels</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>}
+                                  {field.applicableToVesselTypes.includes('NIS') && <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge variant="outline" className="border-purple-200 bg-purple-50 text-purple-700">
+                                            <Anchor className="h-3 w-3 mr-1" />NIS
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Applies to NIS Vessels</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Switch 
+                                  checked={field.isActive} 
+                                  onCheckedChange={(checked) => handleToggleTaxField(field.id, checked)}
+                                />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleEditTaxField(field)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem onClick={() => handleContextMenuAction(field, 'edit')}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Tax Field
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => handleContextMenuAction(field, 'toggle')}>
+                              {field.isActive ? (
+                                <>
+                                  <X className="h-4 w-4 mr-2" />
+                                  Deactivate Field
+                                </>
+                              ) : (
+                                <>
+                                  <FileCheck className="h-4 w-4 mr-2" />
+                                  Activate Field
+                                </>
+                              )}
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
                       ))
                     )}
                   </TableBody>
@@ -582,7 +595,6 @@ const TaxSettings: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Tax Field Edit Dialog */}
       <TaxFieldEditDialog 
         isOpen={isEditingTaxField} 
         onClose={() => setIsEditingTaxField(false)} 
@@ -591,7 +603,6 @@ const TaxSettings: React.FC = () => {
         categories={uniqueCategories as TaxCategory[]}
       />
 
-      {/* Tax Bracket Edit Dialog */}
       <TaxBracketEditDialog
         isOpen={isEditingTaxBracket}
         onClose={() => setIsEditingTaxBracket(false)}
