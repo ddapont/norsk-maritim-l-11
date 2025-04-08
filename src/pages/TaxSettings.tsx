@@ -1,71 +1,43 @@
-
 import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { ProgressiveTaxBracket, TaxCategory, TaxField } from '@/types/types';
 import { mockProgressiveTaxBrackets, mockTaxFields } from '@/data/mockData';
 import { Anchor, BarChart3, Edit, Filter, Flag, Info, Plus, Ship } from 'lucide-react';
-
 const TaxSettings: React.FC = () => {
   const [taxFields, setTaxFields] = useState<TaxField[]>([]);
   const [progressiveBrackets, setProgressiveBrackets] = useState<ProgressiveTaxBracket[]>([]);
   const [filterCategory, setFilterCategory] = useState<TaxCategory | 'All'>('All');
   const [filterResidency, setFilterResidency] = useState<'All' | 'Resident' | 'Non-Resident'>('All');
   const [filterVesselType, setFilterVesselType] = useState<'All' | 'NOR' | 'NIS' | 'Other'>('All');
-
   useEffect(() => {
     // In a real app, these would be API calls
     setTaxFields(mockTaxFields);
     setProgressiveBrackets(mockProgressiveTaxBrackets);
   }, []);
-
   const filteredTaxFields = taxFields.filter(field => {
     let categoryMatch = filterCategory === 'All' || field.category === filterCategory;
-    
     let residencyMatch = true;
     if (filterResidency === 'Resident') {
       residencyMatch = field.applicableToResidents;
     } else if (filterResidency === 'Non-Resident') {
       residencyMatch = field.applicableToNonResidents;
     }
-    
     let vesselMatch = true;
     if (filterVesselType !== 'All') {
       vesselMatch = field.applicableToVesselTypes.includes(filterVesselType as 'NOR' | 'NIS' | 'Other');
     }
-    
     return categoryMatch && residencyMatch && vesselMatch;
   });
-
   const uniqueCategories = Array.from(new Set(taxFields.map(field => field.category)));
-  
   const filteredBrackets = progressiveBrackets.filter(bracket => {
     if (filterResidency === 'Resident') {
       return bracket.applicableToResidents;
@@ -74,9 +46,7 @@ const TaxSettings: React.FC = () => {
     }
     return true;
   }).sort((a, b) => a.threshold - b.threshold);
-
-  return (
-    <div className="space-y-6 fade-in">
+  return <div className="space-y-6 fade-in">
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
         <h1 className="font-bold">Tax Settings</h1>
         <div className="flex gap-2">
@@ -109,22 +79,20 @@ const TaxSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value as TaxCategory | 'All')}>
+                  <Select value={filterCategory} onValueChange={value => setFilterCategory(value as TaxCategory | 'All')}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="All">All Categories</SelectItem>
-                      {uniqueCategories.map((category) => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
+                      {uniqueCategories.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Residency Status</label>
-                  <Select value={filterResidency} onValueChange={(value) => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}>
+                  <Select value={filterResidency} onValueChange={value => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by residency" />
                     </SelectTrigger>
@@ -138,7 +106,7 @@ const TaxSettings: React.FC = () => {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Vessel Type</label>
-                  <Select value={filterVesselType} onValueChange={(value) => setFilterVesselType(value as 'All' | 'NOR' | 'NIS' | 'Other')}>
+                  <Select value={filterVesselType} onValueChange={value => setFilterVesselType(value as 'All' | 'NOR' | 'NIS' | 'Other')}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by vessel type" />
                     </SelectTrigger>
@@ -156,7 +124,7 @@ const TaxSettings: React.FC = () => {
           
           <Card>
             <CardHeader>
-              <CardTitle>Norwegian Tax Fields</CardTitle>
+              <CardTitle>Payroll Glossary</CardTitle>
               <CardDescription>
                 Standard and maritime-specific tax fields for Norwegian payroll
               </CardDescription>
@@ -175,8 +143,7 @@ const TaxSettings: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTaxFields.map((field) => (
-                      <TableRow key={field.id}>
+                    {filteredTaxFields.map(field => <TableRow key={field.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-1">
                             {field.name}
@@ -196,14 +163,11 @@ const TaxSettings: React.FC = () => {
                           <Badge variant="outline">{field.category}</Badge>
                         </TableCell>
                         <TableCell>
-                          {field.valueType === 'percentage'
-                            ? `${field.currentValue}%`
-                            : `${field.currentValue.toLocaleString()} NOK`}
+                          {field.valueType === 'percentage' ? `${field.currentValue}%` : `${field.currentValue.toLocaleString()} NOK`}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {field.applicableToResidents && (
-                              <TooltipProvider>
+                            {field.applicableToResidents && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
@@ -214,10 +178,8 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to Residents</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            {field.applicableToNonResidents && (
-                              <TooltipProvider>
+                              </TooltipProvider>}
+                            {field.applicableToNonResidents && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
@@ -228,10 +190,8 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to Non-Residents</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            {field.applicableToVesselTypes.includes('NOR') && (
-                              <TooltipProvider>
+                              </TooltipProvider>}
+                            {field.applicableToVesselTypes.includes('NOR') && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
@@ -242,10 +202,8 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to NOR Vessels</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            {field.applicableToVesselTypes.includes('NIS') && (
-                              <TooltipProvider>
+                              </TooltipProvider>}
+                            {field.applicableToVesselTypes.includes('NIS') && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-purple-200 bg-purple-50 text-purple-700">
@@ -256,8 +214,7 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to NIS Vessels</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
+                              </TooltipProvider>}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -268,8 +225,7 @@ const TaxSettings: React.FC = () => {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </div>
@@ -293,7 +249,7 @@ const TaxSettings: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Residency Status</label>
-                  <Select value={filterResidency} onValueChange={(value) => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}>
+                  <Select value={filterResidency} onValueChange={value => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by residency" />
                     </SelectTrigger>
@@ -328,8 +284,7 @@ const TaxSettings: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBrackets.map((bracket) => (
-                      <TableRow key={bracket.id}>
+                    {filteredBrackets.map(bracket => <TableRow key={bracket.id}>
                         <TableCell className="font-medium">
                           {bracket.threshold.toLocaleString()}
                         </TableCell>
@@ -337,8 +292,7 @@ const TaxSettings: React.FC = () => {
                         <TableCell>{bracket.description}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {bracket.applicableToResidents && (
-                              <TooltipProvider>
+                            {bracket.applicableToResidents && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
@@ -349,10 +303,8 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to Residents</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            {bracket.applicableToNonResidents && (
-                              <TooltipProvider>
+                              </TooltipProvider>}
+                            {bracket.applicableToNonResidents && <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
@@ -363,8 +315,7 @@ const TaxSettings: React.FC = () => {
                                     <p>Applies to Non-Residents</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                            )}
+                              </TooltipProvider>}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -372,8 +323,7 @@ const TaxSettings: React.FC = () => {
                             <Edit className="h-4 w-4" />
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </div>
@@ -381,8 +331,6 @@ const TaxSettings: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default TaxSettings;
