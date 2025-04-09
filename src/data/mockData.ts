@@ -481,6 +481,17 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "3",
     grossSalary: 650000,
+    componentBreakdown: {
+      "basicIncomeTax": 143000,
+      "progressiveTax": 27580,
+      "socialSecurityEmployee": 53300,
+      "pensionContribution": 13000,
+      "unionFees": 0,
+      "otherDeductions": 5200,
+      "seafarerAllowance": 156000,
+      "specialDeductions": 8000,
+      "socialSecurityEmployer": 91650
+    },
     basicIncomeTax: 143000,
     progressiveTax: 27580,
     socialSecurityEmployee: 53300,
@@ -496,6 +507,17 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "4",
     grossSalary: 620000,
+    componentBreakdown: {
+      "basicIncomeTax": 93000,
+      "progressiveTax": 0,
+      "socialSecurityEmployee": 0,
+      "socialSecurityEmployer": 87420,
+      "seafarerAllowance": 148800,
+      "specialDeductions": 8000,
+      "pensionContribution": 0,
+      "unionFees": 0,
+      "otherDeductions": 4960
+    },
     basicIncomeTax: 93000, // Using non-resident tax rate
     progressiveTax: 0, // Non-residents don't pay progressive tax
     socialSecurityEmployee: 0, // Non-residents don't pay into social security
@@ -511,6 +533,17 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "6",
     grossSalary: 720000,
+    componentBreakdown: {
+      "basicIncomeTax": 158400,
+      "progressiveTax": 41060,
+      "socialSecurityEmployee": 59040,
+      "socialSecurityEmployer": 101520,
+      "seafarerAllowance": 252000,
+      "specialDeductions": 8000,
+      "pensionContribution": 14400,
+      "unionFees": 10800,
+      "otherDeductions": 5760
+    },
     basicIncomeTax: 158400,
     progressiveTax: 41060,
     socialSecurityEmployee: 59040,
@@ -526,6 +559,17 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "7",
     grossSalary: 590000,
+    componentBreakdown: {
+      "basicIncomeTax": 88500,
+      "progressiveTax": 0,
+      "socialSecurityEmployee": 0,
+      "socialSecurityEmployer": 83190,
+      "seafarerAllowance": 141600,
+      "specialDeductions": 8000,
+      "pensionContribution": 0,
+      "unionFees": 0,
+      "otherDeductions": 4720
+    },
     basicIncomeTax: 88500, // Using non-resident tax rate
     progressiveTax: 0, // Non-residents don't pay progressive tax
     socialSecurityEmployee: 0, // Non-residents don't pay into social security
