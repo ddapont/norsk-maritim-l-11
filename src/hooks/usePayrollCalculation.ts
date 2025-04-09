@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Employee, PayrollCalculation, SalaryComponent } from '@/types/types';
-import { mockProgressiveTaxBrackets } from '@/data/mockData';
+import { mockProgressiveTaxBrackets } from '@/data/mockTaxBrackets';
 import {
   calculateBasicIncomeTax,
   calculateNetSalary,

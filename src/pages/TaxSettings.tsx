@@ -9,7 +9,8 @@ import {
   OperationType,
   DefaultCategories
 } from '@/types/types';
-import { mockProgressiveTaxBrackets, mockTaxFields } from '@/data/mockData';
+import { mockProgressiveTaxBrackets } from '@/data/mockTaxBrackets';
+import { mockTaxFields } from '@/data/mockSalaryComponents';
 import { useToast } from '@/hooks/use-toast';
 import TaxFieldEditDialog from '@/components/tax/TaxFieldEditDialog';
 import TaxBracketEditDialog from '@/components/tax/TaxBracketEditDialog';

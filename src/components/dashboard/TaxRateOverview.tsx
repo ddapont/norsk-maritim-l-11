@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { useEffect, useState } from 'react';
 import { TaxField } from '@/types/types';
-import { mockTaxFields } from '@/data/mockData';
+import { mockTaxFields } from '@/data/mockSalaryComponents';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, ArrowRight, Filter } from 'lucide-react';

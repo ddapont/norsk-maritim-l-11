@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Employee, PayrollCalculation } from '@/types/types';
-import { mockPayrollCalculations } from '@/data/mockData';
+import { mockPayrollCalculations } from '@/data/mockPayrollData';
 
 export const useBatchCalculation = (employees: Employee[]) => {
   const [batchCalculations, setBatchCalculations] = useState<(PayrollCalculation & { employeeName: string })[]>([]);
