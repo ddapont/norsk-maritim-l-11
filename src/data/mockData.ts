@@ -1,4 +1,5 @@
-import { DashboardSummary, Employee, PayrollBatchSummary, PayrollCalculation, ProgressiveTaxBracket, TaxField } from "../types/types";
+
+import { DashboardSummary, Employee, PayrollBatchSummary, PayrollCalculation, ProgressiveTaxBracket, TaxField, ComponentType, OperationType, SalaryComponent } from "../types/types";
 
 // Mock Employees
 export const mockEmployees: Employee[] = [
@@ -149,7 +150,7 @@ export const mockEmployees: Employee[] = [
 ];
 
 // Mock Tax Fields
-export const mockTaxFields: TaxField[] = [
+export const mockTaxFields: SalaryComponent[] = [
   {
     id: "1",
     name: "Basic Income Tax Rate",
@@ -158,6 +159,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 22,
     valueType: "percentage",
     category: "Basic Income Tax",
+    componentType: "tax",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -172,6 +176,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 8.2,
     valueType: "percentage",
     category: "Social Security",
+    componentType: "contribution",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -186,6 +193,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 14.1,
     valueType: "percentage",
     category: "Social Security",
+    componentType: "contribution",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -200,6 +210,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 30,
     valueType: "percentage",
     category: "Maritime Allowance",
+    componentType: "allowance",
+    operation: "add",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -214,6 +227,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 2,
     valueType: "percentage",
     category: "Pension",
+    componentType: "contribution",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -228,6 +244,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 3000,
     valueType: "fixed",
     category: "Special Deduction",
+    componentType: "allowance",
+    operation: "add",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -242,6 +261,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 5000,
     valueType: "fixed",
     category: "Special Deduction",
+    componentType: "allowance",
+    operation: "add",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -256,6 +278,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 1.5,
     valueType: "percentage",
     category: "Union Fee",
+    componentType: "deduction",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -270,6 +295,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 0.8,
     valueType: "percentage",
     category: "Insurance",
+    componentType: "deduction",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -284,6 +312,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 16,
     valueType: "percentage",
     category: "Basic Income Tax",
+    componentType: "tax",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -298,6 +329,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 15,
     valueType: "percentage",
     category: "Residence Tax",
+    componentType: "tax",
+    operation: "subtract",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: false,
@@ -312,6 +346,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 5,
     valueType: "percentage",
     category: "Maritime Allowance",
+    componentType: "allowance",
+    operation: "add",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -326,6 +363,9 @@ export const mockTaxFields: TaxField[] = [
     currentValue: 3000,
     valueType: "fixed",
     category: "Special Deduction",
+    componentType: "allowance",
+    operation: "add",
+    operatesOn: ["grossSalary"],
     isActive: true,
     lastUpdated: "2023-01-01",
     applicableToResidents: true,
@@ -391,6 +431,16 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "1",
     grossSalary: 850000,
+    componentBreakdown: {
+      "basicIncomeTax": 187000,
+      "progressiveTax": 62260,
+      "socialSecurityEmployee": 69700,
+      "pensionContribution": 17000,
+      "unionFees": 12750,
+      "otherDeductions": 6800,
+      "seafarerAllowance": 255000,
+      "specialDeductions": 8000
+    },
     basicIncomeTax: 187000,
     progressiveTax: 62260,
     socialSecurityEmployee: 69700,
@@ -406,6 +456,16 @@ export const mockPayrollCalculations: PayrollCalculation[] = [
   {
     employeeId: "2",
     grossSalary: 780000,
+    componentBreakdown: {
+      "basicIncomeTax": 171600,
+      "progressiveTax": 48280,
+      "socialSecurityEmployee": 63960,
+      "pensionContribution": 15600,
+      "unionFees": 11700,
+      "otherDeductions": 6240,
+      "seafarerAllowance": 234000,
+      "specialDeductions": 8000
+    },
     basicIncomeTax: 171600,
     progressiveTax: 48280,
     socialSecurityEmployee: 63960,
@@ -523,4 +583,5 @@ export const mockDashboardSummary: DashboardSummary = {
   norVesselEmployees: 4,
   nisVesselEmployees: 3,
   otherVesselEmployees: 0,
+  employeeBreakdowns: {}
 };

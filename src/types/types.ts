@@ -1,3 +1,4 @@
+
 // Employee Types
 export interface Employee {
   id: string;
@@ -97,6 +98,17 @@ export interface PayrollCalculation {
   netSalary: number;
   calculationDate: string;
   employeeName?: string;
+  
+  // Adding detailed calculation fields that are used in CalculationDetails and CalculationResult
+  basicIncomeTax: number;
+  progressiveTax: number;
+  socialSecurityEmployee: number;
+  socialSecurityEmployer: number;
+  seafarerAllowance: number;
+  specialDeductions: number;
+  pensionContribution: number;
+  unionFees: number;
+  otherDeductions: number;
 }
 
 // Dashboard Types
@@ -106,6 +118,12 @@ export interface DashboardSummary {
   pendingPayrolls: number;
   completedPayrolls: number;
   lastUpdated: string;
+  // Additional breakdown fields for Dashboard
+  residentEmployees: number;
+  nonResidentEmployees: number;
+  norVesselEmployees: number;
+  nisVesselEmployees: number;
+  otherVesselEmployees: number;
   // Additional breakdown fields can be computed dynamically based on categories
   employeeBreakdowns: Record<string, Record<string, number>>; // Category -> Value -> Count
 }

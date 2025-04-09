@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Employee, PayrollCalculation, TaxField } from '@/types/types';
+import { Employee, PayrollCalculation, SalaryComponent } from '@/types/types';
 import { mockProgressiveTaxBrackets } from '@/data/mockData';
 import {
   calculateBasicIncomeTax,
@@ -16,7 +16,7 @@ import {
 
 export const usePayrollCalculation = (
   employees: Employee[],
-  taxFields: TaxField[]
+  taxFields: SalaryComponent[]
 ) => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -90,6 +90,19 @@ export const usePayrollCalculation = (
         otherDeductions
       );
 
+      // Create component breakdown for the new PayrollCalculation type
+      const componentBreakdown: Record<string, number> = {
+        "basicIncomeTax": basicIncomeTax,
+        "progressiveTax": progressiveTax,
+        "socialSecurityEmployee": socialSecurityEmployee,
+        "socialSecurityEmployer": socialSecurityEmployer,
+        "seafarerAllowance": seafarerAllowance,
+        "specialDeductions": specialDeductions,
+        "pensionContribution": pensionContribution,
+        "unionFees": unionFees,
+        "otherDeductions": otherDeductions
+      };
+
       setCalculation({
         employeeId: selectedEmployee.id,
         grossSalary,
@@ -103,6 +116,7 @@ export const usePayrollCalculation = (
         unionFees,
         otherDeductions,
         netSalary,
+        componentBreakdown,
         calculationDate: new Date().toISOString().split('T')[0],
       });
 
