@@ -1,102 +1,99 @@
 
-import React from 'react';
-import { z } from 'zod';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ProgressiveTaxBracket } from '@/types/types';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  DialogDescription 
 } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ExternalLink } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-
-const formSchema = z.object({
-  threshold: z.coerce.number(),
-  rate: z.coerce.number().min(0).max(100),
-  description: z.string().min(3, { message: "Description must be at least 3 characters." }),
-  applicableToResidents: z.boolean(),
-  applicableToNonResidents: z.boolean(),
-});
-
-type TaxBracketFormValues = z.infer<typeof formSchema>;
+import { ProgressiveTaxBracket, CustomCategory } from '@/types/types';
 
 interface TaxBracketEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   taxBracket: ProgressiveTaxBracket | null;
-  onSave: (bracket: ProgressiveTaxBracket) => void;
+  onSave: (taxBracket: ProgressiveTaxBracket) => void;
+  customCategories?: CustomCategory[];
 }
 
-const TaxBracketEditDialog: React.FC<TaxBracketEditDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  taxBracket, 
+const TaxBracketEditDialog: React.FC<TaxBracketEditDialogProps> = ({
+  isOpen,
+  onClose,
+  taxBracket,
   onSave,
+  customCategories = []
 }) => {
-  const form = useForm<TaxBracketFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: taxBracket ? {
-      threshold: taxBracket.threshold,
-      rate: taxBracket.rate,
-      description: taxBracket.description,
-      applicableToResidents: taxBracket.applicableToResidents,
-      applicableToNonResidents: taxBracket.applicableToNonResidents,
-    } : {
+  const form = useForm<ProgressiveTaxBracket>({
+    defaultValues: taxBracket || {
+      id: '',
       threshold: 0,
       rate: 0,
       description: '',
       applicableToResidents: true,
       applicableToNonResidents: false,
+      applicableToVesselTypes: ['NOR', 'NIS', 'Other'],
+      applicableToCountries: [],
     }
   });
 
-  const onSubmit = (values: TaxBracketFormValues) => {
+  useEffect(() => {
     if (taxBracket) {
-      onSave({
-        ...taxBracket,
-        ...values,
-      });
+      form.reset(taxBracket);
     }
+  }, [taxBracket, form]);
+
+  const handleSubmit = (formData: ProgressiveTaxBracket) => {
+    onSave(formData);
     onClose();
   };
 
+  // Get vessel types from custom categories
+  const vesselTypeCategory = customCategories.find(cat => cat.type === 'vesselType');
+  const countryCategory = customCategories.find(cat => cat.type === 'country');
+
+  const getVesselTypes = () => {
+    if (vesselTypeCategory && vesselTypeCategory.values.length > 0) {
+      return vesselTypeCategory.values;
+    }
+    return ['NOR', 'NIS', 'Other'];
+  };
+
+  const getCountries = () => {
+    if (countryCategory && countryCategory.values.length > 0) {
+      return countryCategory.values;
+    }
+    return [];
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {taxBracket ? 'Edit Tax Bracket' : 'Add New Tax Bracket'}
-            <Button size="icon" variant="ghost" className="h-5 w-5" asChild>
-              <a href="https://www.skatteetaten.no/en/rates/tax-rates-2023/" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          </DialogTitle>
+          <DialogTitle>{taxBracket ? 'Edit Tax Bracket' : 'Create New Tax Bracket'}</DialogTitle>
           <DialogDescription>
-            {taxBracket ? 'Update the progressive tax bracket details' : 'Create a new progressive tax bracket'}
+            Progressive tax brackets apply at different income thresholds
           </DialogDescription>
         </DialogHeader>
-
+        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="threshold"
@@ -104,16 +101,21 @@ const TaxBracketEditDialog: React.FC<TaxBracketEditDialogProps> = ({
                   <FormItem>
                     <FormLabel>Income Threshold (NOK)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        value={field.value}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Income amount where this bracket starts
+                      Apply when income exceeds this amount
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
                 name="rate"
@@ -121,17 +123,22 @@ const TaxBracketEditDialog: React.FC<TaxBracketEditDialogProps> = ({
                   <FormItem>
                     <FormLabel>Tax Rate (%)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.1" min="0" max="100" {...field} />
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        value={field.value}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Percentage rate applied to income in this bracket
+                      Percentage applied to income above threshold
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
+            
             <FormField
               control={form.control}
               name="description"
@@ -139,62 +146,136 @@ const TaxBracketEditDialog: React.FC<TaxBracketEditDialogProps> = ({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Textarea 
+                      placeholder="e.g. Top bracket for high income earners" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            <div className="space-y-2">
+              <FormLabel>Applicability</FormLabel>
+              
+              <div className="space-y-4 border rounded-md p-4">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Apply to Residency Status:</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField
+                      control={form.control}
+                      name="applicableToResidents"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <Checkbox 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            Residents
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="applicableToNonResidents"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <Checkbox 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            Non-Residents
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="applicableToResidents"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox 
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Apply to Vessel Types:</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {getVesselTypes().map((vesselType) => (
+                      <FormField
+                        key={vesselType}
+                        control={form.control}
+                        name="applicableToVesselTypes"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <Checkbox 
+                                checked={field.value?.includes(vesselType)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value || [], vesselType])
+                                    : field.onChange(field.value?.filter(
+                                        (value) => value !== vesselType
+                                      ));
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal">
+                              {vesselType}
+                            </FormLabel>
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Applicable to Residents</FormLabel>
-                      <FormDescription>
-                        Tax residents of Norway
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
+                    ))}
+                  </div>
+                </div>
 
-              <FormField
-                control={form.control}
-                name="applicableToNonResidents"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox 
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Applicable to Non-Residents</FormLabel>
-                      <FormDescription>
-                        Non-tax residents of Norway
-                      </FormDescription>
+                {getCountries().length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Apply to Countries:</h4>
+                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md">
+                      {getCountries().map((country) => (
+                        <FormField
+                          key={country}
+                          control={form.control}
+                          name="applicableToCountries"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox 
+                                  checked={field.value?.includes(country)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value || [], country])
+                                      : field.onChange(field.value?.filter(
+                                          (value) => value !== country
+                                        ));
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                {country}
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
                     </div>
-                  </FormItem>
+                  </div>
                 )}
-              />
+              </div>
             </div>
-
+            
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit">
+                {taxBracket ? 'Update' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

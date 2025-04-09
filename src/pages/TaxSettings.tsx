@@ -1,7 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProgressiveTaxBracket, TaxCategory, TaxField } from '@/types/types';
+import { 
+  SalaryComponent, 
+  ProgressiveTaxBracket, 
+  CustomCategory,
+  ComponentType,
+  OperationType,
+  DefaultCategories
+} from '@/types/types';
 import { mockProgressiveTaxBrackets, mockTaxFields } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 import TaxFieldEditDialog from '@/components/tax/TaxFieldEditDialog';
@@ -12,17 +19,25 @@ import TaxFieldsTable from '@/components/tax/TaxFieldsTable';
 import ProgressiveTaxBracketsFilter from '@/components/tax/ProgressiveTaxBracketsFilter';
 import ProgressiveTaxBracketsTable from '@/components/tax/ProgressiveTaxBracketsTable';
 import TaxSettingsHeader from '@/components/tax/TaxSettingsHeader';
+import CustomCategoriesManager from '@/components/tax/CustomCategoriesManager';
 
 const TaxSettings: React.FC = () => {
-  const [taxFields, setTaxFields] = useState<TaxField[]>([]);
+  // Changed from taxFields to salaryComponents
+  const [salaryComponents, setSalaryComponents] = useState<SalaryComponent[]>([]);
   const [progressiveBrackets, setProgressiveBrackets] = useState<ProgressiveTaxBracket[]>([]);
-  const [filterCategory, setFilterCategory] = useState<TaxCategory | 'All'>('All');
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  
+  // Filter state
+  const [filterCategory, setFilterCategory] = useState<string | 'All'>('All');
   const [filterResidency, setFilterResidency] = useState<'All' | 'Resident' | 'Non-Resident'>('All');
-  const [filterVesselType, setFilterVesselType] = useState<'All' | 'NOR' | 'NIS' | 'Other'>('All');
+  const [filterVesselType, setFilterVesselType] = useState<string | 'All'>('All');
+  const [filterComponentType, setFilterComponentType] = useState<ComponentType | 'All'>('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTaxField, setSelectedTaxField] = useState<TaxField | null>(null);
+  
+  // Edit state
+  const [selectedComponent, setSelectedComponent] = useState<SalaryComponent | null>(null);
   const [selectedTaxBracket, setSelectedTaxBracket] = useState<ProgressiveTaxBracket | null>(null);
-  const [isEditingTaxField, setIsEditingTaxField] = useState(false);
+  const [isEditingComponent, setIsEditingComponent] = useState(false);
   const [isEditingTaxBracket, setIsEditingTaxBracket] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
@@ -30,33 +45,76 @@ const TaxSettings: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setTaxFields(mockTaxFields);
+    // Initialize from mock data
+    // Convert old tax fields to the new salary component format
+    const convertedComponents = mockTaxFields.map(field => ({
+      ...field,
+      componentType: 'tax' as ComponentType,
+      operation: 'subtract' as OperationType,
+      operatesOn: ['grossSalary'],
+      applicableToCountries: []
+    }));
+    
+    setSalaryComponents(convertedComponents);
     setProgressiveBrackets(mockProgressiveTaxBrackets);
+    
+    // Initialize with some example custom categories
+    setCustomCategories([
+      {
+        id: 'cat-1',
+        name: 'Ship Registers',
+        description: 'Types of ship registers',
+        isActive: true,
+        lastUpdated: '2025-04-09',
+        type: 'vesselType',
+        values: ['NOR', 'NIS', 'Other', 'FOC']
+      },
+      {
+        id: 'cat-2',
+        name: 'Countries',
+        description: 'List of countries',
+        isActive: true,
+        lastUpdated: '2025-04-09',
+        type: 'country',
+        values: ['Norway', 'Sweden', 'Denmark', 'Finland', 'Iceland']
+      }
+    ]);
   }, []);
 
-  const filteredTaxFields = taxFields.filter(field => {
+  const filteredComponents = salaryComponents.filter(component => {
     const searchMatch = searchTerm === '' || 
-      field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      field.description.toLowerCase().includes(searchTerm.toLowerCase());
+      component.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      component.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-    let categoryMatch = filterCategory === 'All' || field.category === filterCategory;
+    const categoryMatch = filterCategory === 'All' || component.category === filterCategory;
+    
+    const componentTypeMatch = filterComponentType === 'All' || component.componentType === filterComponentType;
     
     let residencyMatch = true;
     if (filterResidency === 'Resident') {
-      residencyMatch = field.applicableToResidents;
+      residencyMatch = component.applicableToResidents;
     } else if (filterResidency === 'Non-Resident') {
-      residencyMatch = field.applicableToNonResidents;
+      residencyMatch = component.applicableToNonResidents;
     }
     
     let vesselMatch = true;
     if (filterVesselType !== 'All') {
-      vesselMatch = field.applicableToVesselTypes.includes(filterVesselType as 'NOR' | 'NIS' | 'Other');
+      vesselMatch = component.applicableToVesselTypes.includes(filterVesselType);
     }
     
-    return searchMatch && categoryMatch && residencyMatch && vesselMatch;
+    return searchMatch && categoryMatch && residencyMatch && vesselMatch && componentTypeMatch;
   });
 
-  const uniqueCategories = Array.from(new Set(taxFields.map(field => field.category)));
+  // Get all unique categories from components and custom categories
+  const getAllCategories = () => {
+    const componentCategories = Array.from(new Set(salaryComponents.map(comp => comp.category)));
+    const taxCategories = customCategories
+      .filter(cat => cat.type === 'tax' && cat.isActive)
+      .flatMap(cat => cat.values);
+    
+    // Combine all categories and ensure DefaultCategories are included
+    return Array.from(new Set([...DefaultCategories, ...componentCategories, ...taxCategories]));
+  };
 
   const filteredBrackets = progressiveBrackets.filter(bracket => {
     if (filterResidency === 'Resident') {
@@ -64,59 +122,83 @@ const TaxSettings: React.FC = () => {
     } else if (filterResidency === 'Non-Resident') {
       return bracket.applicableToNonResidents;
     }
+    
+    if (filterVesselType !== 'All' && bracket.applicableToVesselTypes) {
+      return bracket.applicableToVesselTypes.includes(filterVesselType);
+    }
+    
     return true;
   }).sort((a, b) => a.threshold - b.threshold);
 
-  const handleToggleTaxField = (id: string, isActive: boolean) => {
-    const updatedFields = taxFields.map(field => 
-      field.id === id ? { ...field, isActive, lastUpdated: new Date().toISOString().split('T')[0] } : field
+  const handleToggleComponent = (id: string, isActive: boolean) => {
+    const updatedComponents = salaryComponents.map(component => 
+      component.id === id ? { ...component, isActive, lastUpdated: new Date().toISOString().split('T')[0] } : component
     );
-    setTaxFields(updatedFields);
+    setSalaryComponents(updatedComponents);
     setHasUnsavedChanges(true);
     
     toast({
-      title: isActive ? "Tax Field Activated" : "Tax Field Deactivated",
-      description: `The tax field status has been updated.`,
+      title: isActive ? "Component Activated" : "Component Deactivated",
+      description: `The component status has been updated.`,
       variant: isActive ? "default" : "destructive",
     });
   };
 
-  const handleEditTaxField = (field: TaxField) => {
-    setSelectedTaxField(field);
-    setIsEditingTaxField(true);
+  const handleEditComponent = (component: SalaryComponent) => {
+    setSelectedComponent(component);
+    setIsEditingComponent(true);
   };
 
-  const handleSaveTaxField = (updatedField: TaxField) => {
-    const updatedFields = taxFields.map(field => 
-      field.id === updatedField.id ? updatedField : field
-    );
-    setTaxFields(updatedFields);
-    setHasUnsavedChanges(true);
+  const handleSaveComponent = (updatedComponent: SalaryComponent) => {
+    const exists = salaryComponents.some(comp => comp.id === updatedComponent.id);
     
-    toast({
-      title: "Tax Field Updated",
-      description: `The changes to ${updatedField.name} have been saved.`,
-    });
+    if (exists) {
+      // Update existing component
+      const updatedComponents = salaryComponents.map(comp => 
+        comp.id === updatedComponent.id ? updatedComponent : comp
+      );
+      setSalaryComponents(updatedComponents);
+      
+      toast({
+        title: "Component Updated",
+        description: `The changes to ${updatedComponent.name} have been saved.`,
+      });
+    } else {
+      // Add new component
+      setSalaryComponents([...salaryComponents, updatedComponent]);
+      
+      toast({
+        title: "Component Created",
+        description: `New component "${updatedComponent.name}" has been created.`,
+      });
+    }
+    
+    setHasUnsavedChanges(true);
+    setIsEditingComponent(false);
   };
 
-  const handleAddTaxField = () => {
-    const newField: TaxField = {
-      id: `tf-${Date.now()}`,
-      name: "New Tax Field",
-      description: "Description of the new tax field",
+  const handleAddComponent = () => {
+    const newComponent: SalaryComponent = {
+      id: `comp-${Date.now()}`,
+      name: "New Salary Component",
+      description: "Description of the new component",
       defaultValue: 0,
       currentValue: 0,
       valueType: 'percentage',
-      category: 'Basic Income Tax',
+      category: 'Other',
+      componentType: 'tax',
+      operation: 'subtract',
+      operatesOn: ['grossSalary'],
       isActive: true,
       lastUpdated: new Date().toISOString().split('T')[0],
       applicableToResidents: true,
       applicableToNonResidents: false,
       applicableToVesselTypes: ['NOR'],
+      applicableToCountries: [],
     };
     
-    setSelectedTaxField(newField);
-    setIsEditingTaxField(true);
+    setSelectedComponent(newComponent);
+    setIsEditingComponent(true);
   };
 
   const handleEditTaxBracket = (bracket: ProgressiveTaxBracket) => {
@@ -151,12 +233,34 @@ const TaxSettings: React.FC = () => {
     setIsEditingTaxBracket(true);
   };
 
-  const handleContextMenuAction = (field: TaxField, action: string) => {
+  const handleContextMenuAction = (component: SalaryComponent, action: string) => {
     if (action === 'edit') {
-      handleEditTaxField(field);
+      handleEditComponent(component);
     } else if (action === 'toggle') {
-      handleToggleTaxField(field.id, !field.isActive);
+      handleToggleComponent(component.id, !component.isActive);
     }
+  };
+
+  const handleSaveCategory = (category: CustomCategory) => {
+    const exists = customCategories.some(cat => cat.id === category.id);
+    
+    if (exists) {
+      // Update existing category
+      const updatedCategories = customCategories.map(cat => 
+        cat.id === category.id ? category : cat
+      );
+      setCustomCategories(updatedCategories);
+    } else {
+      // Add new category
+      setCustomCategories([...customCategories, category]);
+    }
+    
+    setHasUnsavedChanges(true);
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    setCustomCategories(customCategories.filter(cat => cat.id !== categoryId));
+    setHasUnsavedChanges(true);
   };
 
   const handleSaveAllChanges = () => {
@@ -164,7 +268,7 @@ const TaxSettings: React.FC = () => {
     
     toast({
       title: "All Changes Saved",
-      description: "Your tax configuration has been updated successfully.",
+      description: "Your salary component configuration has been updated successfully.",
       variant: "default",
     });
   };
@@ -172,8 +276,8 @@ const TaxSettings: React.FC = () => {
   const handleOpenTaxCalculator = () => {
     navigate('/payroll');
     toast({
-      title: "Redirecting to Tax Calculator",
-      description: "Opening the payroll tax calculator.",
+      title: "Redirecting to Payroll Calculator",
+      description: "Opening the payroll calculator.",
     });
   };
 
@@ -183,18 +287,19 @@ const TaxSettings: React.FC = () => {
         hasUnsavedChanges={hasUnsavedChanges}
         handleSaveAllChanges={handleSaveAllChanges}
         handleOpenTaxCalculator={handleOpenTaxCalculator}
-        handleAddTaxField={handleAddTaxField}
+        handleAddTaxField={handleAddComponent}
         handleAddTaxBracket={handleAddTaxBracket}
-        taxFields={taxFields}
+        taxFields={salaryComponents}
       />
 
-      <Tabs defaultValue="tax-fields">
-        <TabsList className="grid w-full md:w-auto grid-cols-2">
-          <TabsTrigger value="tax-fields">Tax Fields</TabsTrigger>
-          <TabsTrigger value="progressive-brackets">Progressive Brackets</TabsTrigger>
+      <Tabs defaultValue="salary-components">
+        <TabsList className="grid w-full md:w-auto grid-cols-3">
+          <TabsTrigger value="salary-components">Salary Components</TabsTrigger>
+          <TabsTrigger value="progressive-brackets">Progressive Tax</TabsTrigger>
+          <TabsTrigger value="custom-categories">Custom Categories</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="tax-fields" className="mt-4 space-y-4">
+        <TabsContent value="salary-components" className="mt-4 space-y-4">
           <TaxFieldsFilterOptions 
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -204,15 +309,23 @@ const TaxSettings: React.FC = () => {
             setFilterResidency={setFilterResidency}
             filterVesselType={filterVesselType}
             setFilterVesselType={setFilterVesselType}
-            uniqueCategories={uniqueCategories as TaxCategory[]}
+            // Pass the unique categories
+            uniqueCategories={getAllCategories()}
+            // Add new filter for component type
+            filterComponentType={filterComponentType}
+            setFilterComponentType={setFilterComponentType}
+            // Pass the custom vessel types
+            vesselTypes={customCategories.find(cat => cat.type === 'vesselType')?.values || ['NOR', 'NIS', 'Other']}
           />
           
           <TaxFieldsTable 
-            filteredTaxFields={filteredTaxFields}
-            handleToggleTaxField={handleToggleTaxField}
-            handleEditTaxField={handleEditTaxField}
-            handleAddTaxField={handleAddTaxField}
+            filteredTaxFields={filteredComponents}
+            handleToggleTaxField={handleToggleComponent}
+            handleEditTaxField={handleEditComponent}
+            handleAddTaxField={handleAddComponent}
             handleContextMenuAction={handleContextMenuAction}
+            // Pass enhancedFields flag to show component type and operation
+            enhancedFields={true}
           />
         </TabsContent>
         
@@ -220,6 +333,11 @@ const TaxSettings: React.FC = () => {
           <ProgressiveTaxBracketsFilter 
             filterResidency={filterResidency}
             setFilterResidency={setFilterResidency}
+            // Add vessel type filter for brackets
+            filterVesselType={filterVesselType}
+            setFilterVesselType={setFilterVesselType}
+            // Pass the custom vessel types
+            vesselTypes={customCategories.find(cat => cat.type === 'vesselType')?.values || ['NOR', 'NIS', 'Other']}
           />
           
           <ProgressiveTaxBracketsTable 
@@ -228,14 +346,24 @@ const TaxSettings: React.FC = () => {
             handleAddTaxBracket={handleAddTaxBracket}
           />
         </TabsContent>
+
+        <TabsContent value="custom-categories" className="mt-4 space-y-4">
+          <CustomCategoriesManager 
+            categories={customCategories}
+            onSaveCategory={handleSaveCategory}
+            onDeleteCategory={handleDeleteCategory}
+          />
+        </TabsContent>
       </Tabs>
 
       <TaxFieldEditDialog 
-        isOpen={isEditingTaxField} 
-        onClose={() => setIsEditingTaxField(false)} 
-        taxField={selectedTaxField}
-        onSave={handleSaveTaxField}
-        categories={uniqueCategories as TaxCategory[]}
+        isOpen={isEditingComponent} 
+        onClose={() => setIsEditingComponent(false)} 
+        salaryComponent={selectedComponent}
+        onSave={handleSaveComponent}
+        categories={getAllCategories()}
+        components={salaryComponents}
+        customCategories={customCategories}
       />
 
       <TaxBracketEditDialog
@@ -243,6 +371,8 @@ const TaxSettings: React.FC = () => {
         onClose={() => setIsEditingTaxBracket(false)}
         taxBracket={selectedTaxBracket}
         onSave={handleSaveTaxBracket}
+        // Pass custom categories to the brackets dialog
+        customCategories={customCategories}
       />
     </div>
   );

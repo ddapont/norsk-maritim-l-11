@@ -1,22 +1,39 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { ComponentType } from '@/types/types';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { TaxCategory } from '@/types/types';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 interface TaxFieldsFilterOptionsProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
-  filterCategory: TaxCategory | 'All';
-  setFilterCategory: (value: TaxCategory | 'All') => void;
+  filterCategory: string | 'All';
+  setFilterCategory: (value: string | 'All') => void;
   filterResidency: 'All' | 'Resident' | 'Non-Resident';
   setFilterResidency: (value: 'All' | 'Resident' | 'Non-Resident') => void;
-  filterVesselType: 'All' | 'NOR' | 'NIS' | 'Other';
-  setFilterVesselType: (value: 'All' | 'NOR' | 'NIS' | 'Other') => void;
-  uniqueCategories: TaxCategory[];
+  filterVesselType: string | 'All';
+  setFilterVesselType: (value: string | 'All') => void;
+  uniqueCategories: string[];
+  // New props for component type filtering
+  filterComponentType?: ComponentType | 'All';
+  setFilterComponentType?: (value: ComponentType | 'All') => void;
+  // Custom vessel types
+  vesselTypes?: string[];
 }
 
 const TaxFieldsFilterOptions: React.FC<TaxFieldsFilterOptionsProps> = ({
@@ -28,83 +45,141 @@ const TaxFieldsFilterOptions: React.FC<TaxFieldsFilterOptionsProps> = ({
   setFilterResidency,
   filterVesselType,
   setFilterVesselType,
-  uniqueCategories
+  uniqueCategories,
+  filterComponentType = 'All',
+  setFilterComponentType = () => {},
+  vesselTypes = ['NOR', 'NIS', 'Other']
 }) => {
+  const activeFiltersCount = [
+    filterCategory !== 'All',
+    filterResidency !== 'All',
+    filterVesselType !== 'All',
+    filterComponentType !== 'All'
+  ].filter(Boolean).length;
+
+  const componentTypes = [
+    { label: 'All Types', value: 'All' },
+    { label: 'Taxes', value: 'tax' },
+    { label: 'Deductions', value: 'deduction' },
+    { label: 'Contributions', value: 'contribution' },
+    { label: 'Allowances', value: 'allowance' },
+    { label: 'Custom', value: 'custom' }
+  ];
+
+  const resetFilters = () => {
+    setFilterCategory('All');
+    setFilterResidency('All');
+    setFilterVesselType('All');
+    setFilterComponentType('All');
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Filter Options</CardTitle>
-        <CardDescription>
-          Filter tax fields by category, residency status, and vessel type
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="flex flex-col sm:flex-row gap-2">
+      <div className="relative flex-1">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search by name or description"
+          className="pl-8"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      
+      <Select
+        value={filterComponentType}
+        onValueChange={(value) => setFilterComponentType(value as ComponentType | 'All')}
+      >
+        <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectValue placeholder="Component Type" />
+        </SelectTrigger>
+        <SelectContent>
+          {componentTypes.map((type) => (
+            <SelectItem key={type.value} value={type.value}>
+              {type.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2 whitespace-nowrap">
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                {activeFiltersCount}
+              </Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[300px] p-4 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Search</label>
-            <div className="relative">
-              <Input 
-                placeholder="Search tax fields..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() => setSearchTerm('')}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Category</label>
-            <Select value={filterCategory} onValueChange={value => setFilterCategory(value as TaxCategory | 'All')}>
+            <Label>Category</Label>
+            <Select 
+              value={filterCategory} 
+              onValueChange={(value) => setFilterCategory(value)}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Filter by category" />
+                <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Categories</SelectItem>
-                {uniqueCategories.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+                {uniqueCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium">Residency Status</label>
-            <Select value={filterResidency} onValueChange={value => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}>
+            <Label>Residency</Label>
+            <Select 
+              value={filterResidency} 
+              onValueChange={(value) => setFilterResidency(value as 'All' | 'Resident' | 'Non-Resident')}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Filter by residency" />
+                <SelectValue placeholder="All Residency Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Statuses</SelectItem>
-                <SelectItem value="Resident">Resident</SelectItem>
-                <SelectItem value="Non-Resident">Non-Resident</SelectItem>
+                <SelectItem value="All">All Residency Types</SelectItem>
+                <SelectItem value="Resident">Residents Only</SelectItem>
+                <SelectItem value="Non-Resident">Non-Residents Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium">Vessel Type</label>
-            <Select value={filterVesselType} onValueChange={value => setFilterVesselType(value as 'All' | 'NOR' | 'NIS' | 'Other')}>
+            <Label>Vessel Type</Label>
+            <Select 
+              value={filterVesselType} 
+              onValueChange={(value) => setFilterVesselType(value)}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Filter by vessel type" />
+                <SelectValue placeholder="All Vessel Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Vessels</SelectItem>
-                <SelectItem value="NOR">NOR Vessels</SelectItem>
-                <SelectItem value="NIS">NIS Vessels</SelectItem>
-                <SelectItem value="Other">Other Vessels</SelectItem>
+                <SelectItem value="All">All Vessel Types</SelectItem>
+                {vesselTypes.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+          
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={resetFilters}
+          >
+            Reset Filters
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
